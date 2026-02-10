@@ -1,0 +1,11 @@
+{
+	"name": "zinc",
+	"description": "The Zen-C Internal Native Compiler",
+	"copyright": "Copyright © 2026, Fernando Dev",
+	"license": "MIT",
+	"authors": [
+		"Fernando Dev"
+	],
+	"targetName": "zinc",
+	"targetType": "executable"
+}
