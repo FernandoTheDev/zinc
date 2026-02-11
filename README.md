@@ -1,6 +1,6 @@
 # zinc
 
-A native compiler for the [Zen](https://github.com/z-libs/Zen-C) programming language.
+A native compiler for the [Zen-C](https://github.com/z-libs/Zen-C) programming language.
 
 ## Status
 
@@ -15,7 +15,7 @@ dub build
 ## Usage
 
 ```sh
-zinc hello.zc -o hello
+./zinc hello.zc -o hello
 ./hello
 ```
 

@@ -1,0 +1,3 @@
+fn main() -> u0 {
+    let x: int = 67
+}
