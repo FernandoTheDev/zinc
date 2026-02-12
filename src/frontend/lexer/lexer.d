@@ -23,6 +23,7 @@ private:
         "return": TokenKind.Return,
         "defer": TokenKind.Defer,
         "fn": TokenKind.Fn,
+        "def": TokenKind.Def,
     ];
 
     pragma(inline, true)
@@ -46,12 +47,13 @@ private:
     }
 
     pragma(inline, true)
-    char next()
+    char next(uint sz = 1)
     {
         if (!isAtEnd())
         {
-            loffset++;
-            return source[offset++];
+            loffset += sz;
+            offset += sz;
+            return source[offset - sz];
         }
         return peek();
     }
@@ -97,6 +99,14 @@ private:
     }
 
     pragma(inline, true)
+    void pushToken(TokenKind kind, double val, uint start, uint lstart)
+    {
+        TokenValue value;
+        value.f64 = val;
+        tokens ~= Token(kind, value, makePos(start, lstart));
+    }
+
+    pragma(inline, true)
     char previous()
     {
         if (offset > 0)
@@ -114,7 +124,7 @@ public:
         while (!isAtEnd())
         {
             char ch = next();
-            
+
             if (ch == '\n')
             {
                 loffset = 0;
@@ -145,32 +155,150 @@ public:
                 string buffer;
                 start = loffset;
                 lstart = line;
-                while (!isAtEnd() && (isNumeric(ch) || ch == '_'))
+                bool _double;
+                while (!isAtEnd() && (isNumeric(ch) || ch == '_' || ch == '.'))
                 {
-                    if (ch == '_') { next(); continue; }
+                    if (ch == '.')
+                    {
+                        if (_double)
+                        {
+                            error.makeError("Invalid char.", makePos(loffset, line));
+                            throw new Exception("Invalid char.");
+                        }
+                        _double = true;
+                        ch = next();
+                        continue;
+                    }
+                    if (ch == '_')
+                    {
+                        next();
+                        continue;
+                    }
                     buffer ~= ch;
                     ch = next();
                 }
                 previous();
-                pushToken(TokenKind.Number, to!long(buffer), start, lstart);
+                if (_double)
+                    pushToken(TokenKind.Double, to!double(buffer), start, lstart);
+                else
+                    pushToken(TokenKind.Number, to!long(buffer), start, lstart);
                 continue;
             }
 
-            if (ch == '(') { pushToken(TokenKind.LParen, "(", loffset, line); continue; }
-            if (ch == ')') { pushToken(TokenKind.RParen, ")", loffset, line); continue; }
-            if (ch == '[') { pushToken(TokenKind.LBRacket, "[", loffset, line); continue; }
-            if (ch == ']') { pushToken(TokenKind.RBRacket, "]", loffset, line); continue; }
-            if (ch == '{') { pushToken(TokenKind.LBRace, "{", loffset, line); continue; }
-            if (ch == '}') { pushToken(TokenKind.RBrace, "}", loffset, line); continue; }
-            if (ch == '+') { pushToken(TokenKind.Plus, "+", loffset, line); continue; }
-            if (ch == '*') { pushToken(TokenKind.Star, "*", loffset, line); continue; }
-            if (ch == '/') { pushToken(TokenKind.Slash, "/", loffset, line); continue; }
-            if (ch == '-') { pushToken(TokenKind.Minus, "-", loffset, line); continue; }
-            if (ch == ':') { pushToken(TokenKind.Colon, ":", loffset, line); continue; }
-            if (ch == '=') { pushToken(TokenKind.Equals, "=", loffset, line); continue; }
-            if (ch == ';') { pushToken(TokenKind.SemiColon, ";", loffset, line); continue; }
+            if (ch == '/')
+            {
+                if (peek() == '/')
+                {
+                    if (future() == '>')
+                    {
+                        next(3);
+                        error.makeWarning("'Build Directives' are not supported in this compiler.",
+                            makePos(loffset - 3, line));
+                    }
+                    while (!isAtEnd())
+                    {
+                        if (ch == '\n')
+                        {
+                            line++;
+                            loffset = 0;
+                            break;
+                        }
+                        ch = next();
+                    }
+                    continue;
+                }
+                pushToken(TokenKind.Slash, "/", loffset, line);
+                continue;
+            }
 
-            error.makeError(format("Unknown character '%c'.", ch), makePos(loffset, line));
+            if (ch == '-')
+            {
+                if (peek() == '>')
+                {
+                    next();
+                    pushToken(TokenKind.Arrow, "->", loffset - 1, line);
+                }
+                else
+                    pushToken(TokenKind.Minus, "-", loffset, line);
+                continue;
+            }
+            if (ch == '+')
+            {
+                pushToken(TokenKind.Plus, "+", loffset, line);
+                continue;
+            }
+            if (ch == '(')
+            {
+                pushToken(TokenKind.LParen, "(", loffset, line);
+                continue;
+            }
+            if (ch == ')')
+            {
+                pushToken(TokenKind.RParen, ")", loffset, line);
+                continue;
+            }
+            if (ch == '[')
+            {
+                pushToken(TokenKind.LBRacket, "[", loffset, line);
+                continue;
+            }
+            if (ch == ']')
+            {
+                pushToken(TokenKind.RBRacket, "]", loffset, line);
+                continue;
+            }
+            if (ch == '{')
+            {
+                pushToken(TokenKind.LBRace, "{", loffset, line);
+                continue;
+            }
+            if (ch == '}')
+            {
+                pushToken(TokenKind.RBrace, "}", loffset, line);
+                continue;
+            }
+            if (ch == '*')
+            {
+                pushToken(TokenKind.Star, "*", loffset, line);
+                continue;
+            }
+            if (ch == ':')
+            {
+                pushToken(TokenKind.Colon, ":", loffset, line);
+                continue;
+            }
+            if (ch == '=')
+            {
+                pushToken(TokenKind.Equals, "=", loffset, line);
+                continue;
+            }
+            if (ch == ';')
+            {
+                pushToken(TokenKind.SemiColon, ";", loffset, line);
+                continue;
+            }
+            if (ch == ',')
+            {
+                pushToken(TokenKind.Comma, ",", loffset, line);
+                continue;
+            }
+            if (ch == '<')
+            {
+                pushToken(TokenKind.Lt, "<", loffset, line);
+                continue;
+            }
+            if (ch == '>')
+            {
+                pushToken(TokenKind.Gt, ">", loffset, line);
+                continue;
+            }
+            if (ch == '&')
+            {
+                pushToken(TokenKind.Ampersand, "&", loffset, line);
+                continue;
+            }
+
+            error.makeError(format("Lexer: Unknown character '%c'.", ch), makePos(loffset, line));
             continue;
         }
         tokens ~= Token(TokenKind.Eof);

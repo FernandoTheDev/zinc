@@ -84,7 +84,7 @@ public:
 
     void makeWarning(string message, Position pos)
     {
-        warnings ~= ZincError(ReporterLevel.Error, message, pos);
+        warnings ~= ZincError(ReporterLevel.Warning, message, pos);
     }
 
     void check(bool ext = false)
@@ -95,7 +95,11 @@ public:
                 show(err);
             foreach (ref ZincError warn; warnings)
                 show(warn);
-            if (errors.length > 0 && ext)
+
+            errors = [];
+            warnings = [];
+            
+            if (ext)
                 exit(1);
         }
     }

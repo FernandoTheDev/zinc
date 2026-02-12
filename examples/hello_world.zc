@@ -1,3 +1,4 @@
-fn main() {
+fn main(args: char**, argv: u32) -> i32 {
     let x: int = 67
+    return x
 }
