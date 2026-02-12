@@ -1,0 +1,16 @@
+fn sum<T>(x: T, y: T) -> T {
+    return x + y
+}
+
+fn swap<T, Y>(x: T*, y: Y*) {
+    let z = *x
+    // *x = y
+    // *y = z
+}
+
+fn main() -> int {
+    let a = 10
+    let b = 10.0
+    swap<int, double>(&a, &b)
+    return sum<int>(60, 9)
+}

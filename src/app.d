@@ -6,6 +6,8 @@ import std.getopt;
 import core.stdc.stdlib : exit;
 import frontend.lexer.lexer;
 import frontend.lexer.tokens;
+import frontend.parser.parser;
+import frontend.parser.ast;
 import common.reporter;
 
 pragma(inline, true)
@@ -74,11 +76,18 @@ void main(string[] args)
 	{
 		Lexer l = new Lexer(src, filename, dir, error);
 		Token[] tokens = l.tokenize();
-		writeln(tokens);
 		error.check();
+
+		Parser p = new Parser(tokens, error);
+		Node* program = p.program();
+		error.check();
+
+		foreach (ref Node n; program.prog.body)
+			writeln(n);
 	}
 	catch (Exception e)
 	{
+		error.check(true);
 		writeln(e);
 	}
 }

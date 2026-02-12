@@ -13,6 +13,7 @@ enum TokenKind : ubyte
     If,
     Else,
     Return,
+    Def,
 
     // literal
     Number, // 0..9
@@ -21,6 +22,8 @@ enum TokenKind : ubyte
     Bool, // true | false
     Null, // null | NULL
     String, // "fernando"
+    False,
+    True,
 
     // symbols
     Plus, // +
@@ -33,6 +36,8 @@ enum TokenKind : ubyte
     Pipe, // |
     Tilde, // ~
     Ampersand, // &
+    Lt, // <
+    Gt, // >
 
     Equals, // =
     EEquals, // ==
@@ -43,8 +48,12 @@ enum TokenKind : ubyte
     RBrace, // }
     LBRacket, // [
     RBRacket, // ]
+
     Colon, // :
     SemiColon, // ;
+    Comma, // ,
+    
+    Arrow, // ->
 
     Eof,
 }
@@ -66,7 +75,6 @@ union TokenValue {
     long number;
     float f32;
     double f64;
-    bool i1;
 }
 
 struct Token {
