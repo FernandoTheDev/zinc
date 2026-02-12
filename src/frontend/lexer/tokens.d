@@ -1,4 +1,4 @@
-module src.frontend.lexer.tokens;
+module frontend.lexer.tokens;
 
 enum TokenKind : ubyte
 {
@@ -10,6 +10,9 @@ enum TokenKind : ubyte
     Fn,
     Defer,
     Import,
+    If,
+    Else,
+    Return,
 
     // literal
     Number, // 0..9
@@ -17,6 +20,7 @@ enum TokenKind : ubyte
     Double, // 0.0
     Bool, // true | false
     Null, // null | NULL
+    String, // "fernando"
 
     // symbols
     Plus, // +
@@ -39,6 +43,34 @@ enum TokenKind : ubyte
     RBrace, // }
     LBRacket, // [
     RBRacket, // ]
+    Colon, // :
+    SemiColon, // ;
 
     Eof,
+}
+
+struct LinePos {
+    uint col;
+    uint line;
+}
+
+struct Position {
+    string filename;
+    string dir;
+    LinePos start, end;
+}
+
+union TokenValue {
+    string str;
+    char ch;
+    long number;
+    float f32;
+    double f64;
+    bool i1;
+}
+
+struct Token {
+    TokenKind kind;
+    TokenValue value;
+    Position pos;
 }
